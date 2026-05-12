@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
         # Use the yaml-env-action action.
       - name: Load environment from YAML
@@ -45,7 +45,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # get the full repo
           fetch-depth: 0
