@@ -1,7 +1,7 @@
-name: metricminer dashboard
+name: AISES 2025 dashboard
 output_dir: 'docs'
 navbar:
-  title: metricminer dashboard
+  title: AISES 2025 dashboard
   left:
   - text: Home
     href: index.html
@@ -21,6 +21,9 @@ navbar:
   - text: Google Analytics
     href: googleanalytics.html
     icon: fa-google
+  - text: Google Forms
+    href: googleforms.html
+    icon: fa-square-poll-vertical
   #- text: Slido
   #  href: slido.html
   #  icon: a-square-poll-vertical
