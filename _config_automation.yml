@@ -30,12 +30,9 @@ cran_packages: [ metricminer, ottrpal ]
 cran_googlesheet: "1YqRzhqIBV_2PwINkQVoECFKro8aSTrPMmLsKxVYEobY"
 
 ###### GitHub ######
-refresh-github: no
+refresh-github: yes
 github_repos: [
-  fhdsl/metricminer,
-  fhdsl/metricminer-dashboard,
-  jhudsl/OTTR_Template,
-  jhudsl/OTTR_Template_Website
+  BioDataSage/fair25
   ]
 github_googlesheet:
 
