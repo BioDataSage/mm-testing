@@ -14,9 +14,11 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 ```{r, echo = FALSE, hide = TRUE, message=FALSE, warning = FALSE}
 library(ggplot2)
 library(magrittr)
+library(dplyr)
 
 root_dir <- rprojroot::find_root(rprojroot::has_dir(".git"))
 yaml <- yaml::read_yaml(file.path(root_dir, "_config_automation.yml"))
+target_repos <- yaml$github_repos
 
 ## For github
 github_overall <- readr::read_tsv(file.path("metricminer_data", "github", "github.tsv"))
@@ -25,30 +27,87 @@ github_timecourse <- readr::read_tsv(file.path("metricminer_data", "github", "gi
 ## For google
 # github_overall <- googlesheets4::read_sheet(yaml$github_googlesheet, sheet = "overall_stats")
 # github_timecourse <- googlesheets4::read_sheet(yaml$github_googlesheet, sheet = "timecourse")
+
+github_overall <- github_overall %>%
+  dplyr::filter(repo_name %in% target_repos)
+
+github_timecourse <- github_timecourse %>%
+  dplyr::filter(repo %in% target_repos) %>%
+  dplyr::mutate(timestamp = as.Date(timestamp))
+
+repo_label <- paste(target_repos, collapse = ", ")
+has_github_data <- nrow(github_overall) > 0 || nrow(github_timecourse) > 0
 ```
 
-Contributions to a repository example:
+This page summarizes GitHub repository activity for `r repo_label`.
+
+```{r, echo = FALSE, results = "asis"}
+if (!has_github_data) {
+  cat(
+    "No refreshed GitHub metric rows were found for `",
+    repo_label,
+    "` in `metricminer_data/github/` yet. ",
+    "Run `Rscript refresh-scripts/refresh-github.R` and re-render this page after the refresh completes.",
+    sep = ""
+  )
+}
+```
+
+Overall repository metrics:
 
 ```{r echo = FALSE, hide = TRUE, message=FALSE, warning = FALSE}
-github_overall %>% 
-  ggplot(aes(x = repo_name, y = total_contributions)) + 
-  geom_bar(stat = "identity", fill = "lavender") + 
-  theme_classic()
+if (nrow(github_overall) > 0) {
+  github_overall %>%
+    tidyr::pivot_longer(
+      cols = c(num_forks, num_contributors, total_contributions, num_stars),
+      names_to = "metric",
+      values_to = "value"
+    ) %>%
+    dplyr::filter(!is.na(value)) %>%
+    ggplot(aes(x = metric, y = value)) +
+    geom_col(fill = "#4C78A8") +
+    facet_wrap(~ repo_name) +
+    scale_x_discrete(
+      labels = c(
+        num_forks = "Forks",
+        num_contributors = "Contributors",
+        total_contributions = "Contributions",
+        num_stars = "Stars"
+      )
+    ) +
+    labs(x = NULL, y = "Count") +
+    theme_classic()
+}
 ```
 
-Views of a GitHub Repository over time 
+Views and clones over time:
 
 ```{r echo = FALSE, hide = TRUE, message=FALSE}
-github_timecourse %>% 
-  ggplot(aes(x = timestamp, y = count_views, fill = repo, color = repo)) + 
-  geom_line(stat = "identity") + 
-  theme_classic() + 
-  ylab("date")
+if (nrow(github_timecourse) > 0) {
+  github_timecourse %>%
+    dplyr::select(repo, timestamp, count_clones, count_views) %>%
+    tidyr::pivot_longer(
+      cols = c(count_clones, count_views),
+      names_to = "metric",
+      values_to = "count"
+    ) %>%
+    dplyr::filter(!is.na(count)) %>%
+    ggplot(aes(x = timestamp, y = count, color = metric)) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 1.8) +
+    facet_wrap(~ repo, scales = "free_y") +
+    scale_color_manual(
+      values = c(count_clones = "#F58518", count_views = "#4C78A8"),
+      labels = c(count_clones = "Clones", count_views = "Views")
+    ) +
+    labs(x = "Date", y = "Count", color = NULL) +
+    theme_classic()
+}
 ```
 
 ## Data information 
 
-Data information for `github overall data`:
+Data information for GitHub overall data:
 
 - `num_forks` shows the number of times this repo has been forked. NA means it has never been forked. 
 - `num_contributors` how many people have contributed to this repo
@@ -56,35 +115,41 @@ Data information for `github overall data`:
 - `health_percentage` what percentage of ["good software health" items as described by GitHub](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/about-community-profiles-for-public-repositories) does this repo have? 
 
 ```{r, message=FALSE}
-knitr::kable(github_overall)
+if (nrow(github_overall) > 0) {
+  knitr::kable(github_overall)
+}
 ```
 
-Data information for `github timecourse`:
+Data information for GitHub timecourse data:
 
 - `timestamp` shows the date the counts correspond to
 - `count_clones` tells the number of clones made on this day. NAs generally indicate no one cloned the repository that day. 
-- `unique_clones` tells how many people did these clones come from? NAs generally indicate no one cloned the repository that day.
+- `uniques_clones` tells how many people did these clones come from? NAs generally indicate no one cloned the repository that day.
 - `count_views` how many views did the repo get on this day? NAs generally indicate no one viewed the repository that date
-- `unique_views` how many people were those views from? NAs generally indicate no one viewed the repository that date
+- `uniques_views` how many people were those views from? NAs generally indicate no one viewed the repository that date
 
 ```{r, message=FALSE}
-knitr::kable(github_timecourse)
+if (nrow(github_timecourse) > 0) {
+  knitr::kable(github_timecourse)
+}
 ```
 
 ## Setting up GitHub
 
-At this point you should already have your GitHub authorization set up for your metricminer dashboard by having [followed the instructions above.](#setting-up-your-dashboard-repository).
+This dashboard is configured to collect GitHub metrics for `BioDataSage/fair25`.
 
 In the `_config_automation.yml` you will need to specify items in the GitHub section.
 ```
 ###### GitHub ######
 refresh-github: yes
-github_repos: [ fhdsl/metricminer, fhdsl/metricminer.org ]
+github_repos: [
+  BioDataSage/fair25
+  ]
 github_googlesheet:
 ```
 
 - [ ] In the `_config_automation.yml` file, make sure that `refresh-github` is set to "yes".
-- [ ] In `github_repos` of your `_config_automation.yml`, specify the names of the repositories you'd like to collect data from in `github_repos`. Make sure it includes the `owner/repository` e.g. `fhdsl/metricminer` not just `metricminer`. Commas need to separate the repositories. Delete the example repositories we put there.
+- [ ] In `github_repos` of your `_config_automation.yml`, keep `BioDataSage/fair25` listed using the `owner/repository` format.
 - [ ] Optionally, if you are saving data to Google, specify a googlesheet ID in `github_googlesheet` you'd like the GitHub data to be saved to. This will only be relevant if you've set `data_dest` to `google`.
 
 ## Customizing GitHub Data 
