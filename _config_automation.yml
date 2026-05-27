@@ -10,7 +10,7 @@ style-code: yes
 
 ############ Metric Collection Destination ##############
 ### Options are "github" or "google"
-data_dest: google
+data_dest: github
 folder_path:
 
 ###### Calendly ######

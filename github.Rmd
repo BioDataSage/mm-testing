@@ -31,7 +31,7 @@ Contributions to a repository example:
 
 ```{r echo = FALSE, hide = TRUE, message=FALSE, warning = FALSE}
 github_overall %>% 
-  ggplot(aes(x = repo_name, y = total_contributions)) + 
+  ggplot(aes(x = repo_name, y = num_repo_activities)) + 
   geom_bar(stat = "identity", fill = "lavender") + 
   theme_classic()
 ```
