@@ -32,7 +32,14 @@ cran_googlesheet: "1YqRzhqIBV_2PwINkQVoECFKro8aSTrPMmLsKxVYEobY"
 ###### GitHub ######
 refresh-github: yes
 github_repos: [
-  BioDataSage/fair25
+  BioDataSage/fair25,
+  BioDataSage/ff-water-quality,
+  BioDataSage/ff-comm-health,
+  BioDataSage/ff-student-performance,
+  BioDataSage/ff-covid,
+  BioDataSage/ff-food,
+  BioITHackathons/Mining-the-CFDE-for-Post-Translational-Modification-Secrets,
+  BioITHackathons/Repurpostory
   ]
 github_googlesheet:
 
